@@ -1,10 +1,11 @@
 import math
-from typing import List
-import torch
-from toolkit.optimizers.optimizer_utils import copy_stochastic, stochastic_grad_accummulation
-from optimum.quanto import QBytesTensor
 import random
+from typing import List
 
+import torch
+from optimum.quanto import QBytesTensor
+
+from toolkit.optimizers.optimizer_utils import copy_stochastic, stochastic_grad_accummulation
 
 class Adafactor(torch.optim.Optimizer):
     """
@@ -110,11 +111,9 @@ class Adafactor(torch.optim.Optimizer):
         paramiter_swapping_factor=0.1,
     ):
         if lr is not None and relative_step:
-            raise ValueError(
-                "Cannot combine manual `lr` and `relative_step=True` options")
+            raise ValueError("Cannot combine manual `lr` and `relative_step=True` options")
         if warmup_init and not relative_step:
-            raise ValueError(
-                "`warmup_init=True` requires `relative_step=True`")
+            raise ValueError("`warmup_init=True` requires `relative_step=True`")
 
         defaults = {
             "lr": lr,
@@ -213,8 +212,7 @@ class Adafactor(torch.optim.Optimizer):
     def _approx_sq_grad(exp_avg_sq_row, exp_avg_sq_col):
         # copy from fairseq's adafactor implementation:
         # https://github.com/huggingface/transformers/blob/8395f14de6068012787d83989c3627c3df6a252b/src/transformers/optimization.py#L505
-        r_factor = (exp_avg_sq_row / exp_avg_sq_row.mean(dim=-
-                    1, keepdim=True)).rsqrt_().unsqueeze(-1)
+        r_factor = (exp_avg_sq_row / exp_avg_sq_row.mean(dim=-1, keepdim=True)).rsqrt_().unsqueeze(-1)
         c_factor = exp_avg_sq_col.unsqueeze(-2).rsqrt()
         return torch.mul(r_factor, c_factor)
 
@@ -272,8 +270,8 @@ class Adafactor(torch.optim.Optimizer):
                 state = self.state[p]
                 grad_shape = grad.shape
 
-                factored, use_first_moment = self._get_options(
-                    group, grad_shape)
+                factored, use_first_moment = self._get_options(group, grad_shape)
+                
                 # State Initialization
                 if len(state) == 0:
                     state["step"] = 0
@@ -321,14 +319,11 @@ class Adafactor(torch.optim.Optimizer):
                     exp_avg_sq_row = state["exp_avg_sq_row"]
                     exp_avg_sq_col = state["exp_avg_sq_col"]
 
-                    exp_avg_sq_row.mul_(beta2t).add_(
-                        update.mean(dim=-1), alpha=(1.0 - beta2t))
-                    exp_avg_sq_col.mul_(beta2t).add_(
-                        update.mean(dim=-2), alpha=(1.0 - beta2t))
+                    exp_avg_sq_row.mul_(beta2t).add_(update.mean(dim=-1), alpha=(1.0 - beta2t))
+                    exp_avg_sq_col.mul_(beta2t).add_(update.mean(dim=-2), alpha=(1.0 - beta2t))
 
                     # Approximation of exponential moving average of square of gradient
-                    update = self._approx_sq_grad(
-                        exp_avg_sq_row, exp_avg_sq_col)
+                    update = self._approx_sq_grad(exp_avg_sq_row, exp_avg_sq_col)
                     update.mul_(grad)
                 else:
                     exp_avg_sq = state["exp_avg_sq"]
@@ -336,8 +331,7 @@ class Adafactor(torch.optim.Optimizer):
                     exp_avg_sq.mul_(beta2t).add_(update, alpha=(1.0 - beta2t))
                     update = exp_avg_sq.rsqrt().mul_(grad)
 
-                update.div_(
-                    (self._rms(update) / group["clip_threshold"]).clamp_(min=1.0))
+                update.div_((self._rms(update) / group["clip_threshold"]).clamp_(min=1.0))
                 update.mul_(lr)
 
                 if use_first_moment:

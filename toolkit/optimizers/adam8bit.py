@@ -1,7 +1,9 @@
 import math
+
 import torch
 from torch.optim import Optimizer
-from toolkit.optimizers.optimizer_utils import copy_stochastic, Auto8bitTensor, stochastic_grad_accummulation
+
+from toolkit.optimizers.optimizer_utils import Auto8bitTensor, copy_stochastic, stochastic_grad_accummulation
 
 class Adam8bit(Optimizer):
     """
@@ -26,8 +28,7 @@ class Adam8bit(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 1: {betas[1]}")
         
-        defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay,
-                       decouple=decouple)
+        defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, decouple=decouple)
         super(Adam8bit, self).__init__(params, defaults)
         
         self.is_stochastic_rounding_accumulation = False
