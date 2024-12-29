@@ -1,6 +1,4 @@
 import torch
-from transformers import Adafactor, AdamW
-
 
 def get_optimizer(
         params,
@@ -10,7 +8,9 @@ def get_optimizer(
 ):
     if optimizer_params is None:
         optimizer_params = {}
+    
     lower_type = optimizer_type.lower()
+    
     if lower_type.startswith("dadaptation"):
         # dadaptation optimizer does not use standard learning rate. 1 is the default value
         import dadaptation
