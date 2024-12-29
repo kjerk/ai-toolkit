@@ -427,9 +427,12 @@ class BaseSDTrainProcess(BaseTrainProcess):
             os.makedirs(self.save_root, exist_ok=True)
 
         step_num = ''
+        
         if step is not None:
-            # zeropad 9 digits
-            step_num = f"_{str(step).zfill(9)}"
+            pad_digits_len = 9 # Default
+            if self.train_config.steps:
+                pad_digits_len = len(str(self.train_config.steps))
+            step_num = f"_{str(step).zfill(pad_digits_len)}"
 
         self.update_training_metadata()
         filename = f'{self.job.name}{step_num}.safetensors'
