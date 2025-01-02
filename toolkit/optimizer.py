@@ -99,14 +99,17 @@ def get_optimizer(
         from toolkit.optimizers.automagic import Automagic
         optimizer = Automagic(params, lr=float(learning_rate), **optimizer_params)
     elif lower_type == 'cmars':
+        # Add cautious optimizer forks, implemented in timm by @rwightman
+        # Ref: https://github.com/kyleliang919/C-Optim
+        # Ref: https://huggingface.co/rwightman/timm-optim-caution
         import timm.optim
         optimizer = timm.optim.Mars(params, lr=float(learning_rate), caution=True, **optimizer_params)
     elif lower_type == 'claprop':
         import timm.optim
         optimizer = timm.optim.LaProp(params, lr=float(learning_rate), caution=True, **optimizer_params)
     elif lower_type == 'cadamw':
-        from toolkit.optimizers.c_adamw import CAdamW
-        optimizer = CAdamW(params, lr=float(learning_rate), **optimizer_params)
+        import timm.optim
+        optimizer = timm.optim.AdamWLegacy(params, lr=float(learning_rate), caution=True, **optimizer_params)
     else:
         raise ValueError(f'Unknown optimizer type {optimizer_type}')
     
