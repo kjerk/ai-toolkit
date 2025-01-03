@@ -118,6 +118,17 @@ def get_noise_from_latents(latents):
         noise.append(torch.randn_like(latents[0]))
     return torch.stack(noise)
 
+def manual_seed(seed: int):
+    import numpy
+    import random
+    
+    random.seed(seed)
+    
+    numpy.random.seed(seed)
+    
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.use_deterministic_algorithms(True)
 
 # mix 0 is completely noise mean, mix 1 is completely target mean
 

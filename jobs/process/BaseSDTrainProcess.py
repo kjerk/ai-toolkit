@@ -51,7 +51,7 @@ from toolkit.stable_diffusion_model import StableDiffusion
 from jobs.process import BaseTrainProcess
 from toolkit.metadata import get_meta_for_safetensors, load_metadata_from_safetensors, add_base_model_info_to_meta, \
     parse_metadata_from_safetensors
-from toolkit.train_tools import get_torch_dtype, LearnableSNRGamma, apply_learnable_snr_gos, apply_snr_weight
+from toolkit.train_tools import get_torch_dtype, LearnableSNRGamma, apply_learnable_snr_gos, apply_snr_weight, manual_seed
 import gc
 
 from tqdm import tqdm
@@ -84,14 +84,16 @@ class BaseSDTrainProcess(BaseTrainProcess):
         self.is_grad_accumulation_step = False
         self.device = self.get_conf('device', self.job.device)
         self.device_torch = torch.device(self.device)
+        
         network_config = self.get_conf('network', None)
         if network_config is not None:
             self.network_config = NetworkConfig(**network_config)
         else:
             self.network_config = None
+        
         self.train_config = TrainConfig(**self.get_conf('train', {}))
+        
         model_config = self.get_conf('model', {})
-
         # update modelconfig dtype to match train
         model_config['dtype'] = self.train_config.dtype
         self.model_config = ModelConfig(**model_config)
@@ -1745,10 +1747,15 @@ class BaseSDTrainProcess(BaseTrainProcess):
         # TRAIN LOOP
         ###################################################################
 
-
+        reseed = True
         start_step_num = self.step_num
         did_first_flush = False
         for step in range(start_step_num, self.train_config.steps):
+            if reseed and self.train_config.training_seed is not None:
+                step_reseed = self.train_config.training_seed + step
+                manual_seed(step_reseed)
+                self.print(f"Proceeding with SEED: {step_reseed}")
+                reseed = False
             if self.train_config.do_paramiter_swapping:
                 self.optimizer.swap_paramiters()
             self.timer.start('train_loop')
@@ -1877,6 +1884,7 @@ class BaseSDTrainProcess(BaseTrainProcess):
                         if self.train_config.free_u:
                             self.sd.pipeline.disable_freeu()
                         self.sample(self.step_num)
+                        reseed = True
                         if self.train_config.unload_text_encoder:
                             # make sure the text encoder is unloaded
                             self.sd.text_encoder_to('cpu')

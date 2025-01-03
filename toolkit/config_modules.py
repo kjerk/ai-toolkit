@@ -242,7 +242,9 @@ class TrainConfig:
         self.noise_scheduler = kwargs.get('noise_scheduler', 'ddpm')
         self.content_or_style: ContentOrStyleType = kwargs.get('content_or_style', 'balanced')
         self.content_or_style_reg: ContentOrStyleType = kwargs.get('content_or_style', 'balanced')
+        self.training_seed: int = kwargs.get('steps', None)
         self.steps: int = kwargs.get('steps', 1000)
+        self.start_step = kwargs.get('start_step', None)
         self.lr = kwargs.get('lr', 1e-6)
         self.unet_lr = kwargs.get('unet_lr', self.lr)
         self.text_encoder_lr = kwargs.get('text_encoder_lr', self.lr)
@@ -277,7 +279,6 @@ class TrainConfig:
         self.weight_jitter = kwargs.get('weight_jitter', 0.0)
         self.merge_network_on_save = kwargs.get('merge_network_on_save', False)
         self.max_grad_norm = kwargs.get('max_grad_norm', 1.0)
-        self.start_step = kwargs.get('start_step', None)
         self.free_u = kwargs.get('free_u', False)
         self.adapter_assist_name_or_path: Optional[str] = kwargs.get('adapter_assist_name_or_path', None)
         self.adapter_assist_type: Optional[str] = kwargs.get('adapter_assist_type', 't2i')  # t2i, control_net
