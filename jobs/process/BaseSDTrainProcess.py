@@ -1752,7 +1752,8 @@ class BaseSDTrainProcess(BaseTrainProcess):
         did_first_flush = False
         for step in range(start_step_num, self.train_config.steps):
             if reseed and self.train_config.training_seed is not None:
-                step_reseed = self.train_config.training_seed + step
+                # Overrides training_seed from BaseTrainProcess
+                step_reseed = self.train_config.training_seed + step # Reproducability
                 manual_seed(step_reseed)
                 self.print(f"Proceeding with SEED: {step_reseed}")
                 reseed = False
@@ -1884,6 +1885,7 @@ class BaseSDTrainProcess(BaseTrainProcess):
                         if self.train_config.free_u:
                             self.sd.pipeline.disable_freeu()
                         self.sample(self.step_num)
+                        # Trigger reseed after each sampling run to make sampling not cause deviation
                         reseed = True
                         if self.train_config.unload_text_encoder:
                             # make sure the text encoder is unloaded
